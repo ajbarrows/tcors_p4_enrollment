@@ -1,0 +1,4 @@
+screen_id,site,session,sl_status,date,pi_prop,reasons_for_exclusion,randomized
+P-A001,uvm,screening,Complete,1/3/20,proper,NA,NA
+P-A002,uvm,screening,Screening Ineligible,2/24/20,proper,Other,no
+P-A902,uvm,screening,Complete,9/19/19,pilot,NA,yes

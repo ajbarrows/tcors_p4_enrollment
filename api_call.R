@@ -19,7 +19,60 @@ sessions <- c(
   "30_day_followup", "birth_outcomes"
   )
 
+recruit_source_vars <- list(
+  "recruit_1___0" = "TV",
+  "recruit_1___1" = "Radio",
+  "recruit_1___2" = "Metro Newspaper",
+  "recruit_1___3" = "Community Newspaper",
+  "recruit_1___4" = "Flyer",
+  "recruit_1___5" = "Facebook",
+  "recruit_1___6" = "Craigslist",
+  "recruit_1___7" = "Bus Advertisement",
+  "recruit_1___8" = "Participation in Other Studies",
+  "recruit_1___9" = "Clinical Trials Websites",
+  "recruit_1___10" = "Direct Mail",
+  "recruit_1___11" = "Other Person",
+  "recruit_1___12" = "Other",
+  "recruit_1___13" = "Instagram",
+  "recruit_1___14" = "Google",
+  "recruit_1___15" = "YouTube",
+  "recruit_1___16" = "Front Porch Forum",
+  "recruit_1___17" = "Spotify",
+  "recruit_1___18" = "TikTok",
+  "recruit_1___19" = "Reddit",
+  "recruit_1___20" = "BuildClinical"
+)
 
+exclusion_vars <- list(
+  "sl_exclusion___1" = "did_not_consent",
+  "sl_exclusion___2" = "illiterate",
+  "sl_exclusion___3" = "not_pregnant",
+  "sl_exclusion___4" = "morethan_25wks",
+  "sl_exclusion___5" = "no_EGA_verification",
+  "sl_exclusion___6" = "over_44",
+  "sl_exclusion___7" = "under_21",
+  "sl_exclusion___8" = "ed_too_high",
+  "sl_exclusion___9" = "other_research",
+  "sl_exclusion___10" = "high_co",
+  "sl_exclusion___11" = "neg_cotinine",
+  "sl_exclusion___12" = "cessation_aids",
+  "sl_exclusion___13" = "cessation_txt",
+  "sl_exclusion___14" = "quit_plans",
+  "sl_exclusion___15" = "quit_past_month",
+  "sl_exclusion___16" = "other_tob_use",
+  "sl_exclusion___17" = "rolls_own",
+  "sl_exclusion___18" = "suicide_ideation",
+  "sl_exclusion___19" = "suicide_attempt",
+  "sl_exclusion___20" = "psychosis",
+  "sl_exclusion___21" = "nmania",
+  "sl_exclusion___22" = "failed_tox_screen",
+  "sl_exclusion___23" = "bp_out_of_range",
+  "sl_exclusion___24" = "hr_out_of_range",
+  "sl_exclusion___25" = "unstable_om_txt",
+  "sl_exclusion___26" = "opted_out",
+  "sl_exclusion___27" = "lmp_exclusion",
+  "sl_exclusion___28" = "covid19"
+)
 
 
 # functions ------
@@ -57,7 +110,8 @@ pull_enrollment_info <- function(rcon) {
     factors = FALSE,
     dates = FALSE,
     form_complete_auto = FALSE
-  )
+  ) %>%
+    filter(!stringr::str_detect(screen_id, "-2"))
 }
 
 pull_prescreen_info <- function(rcon, sitename) {
@@ -102,32 +156,7 @@ rename_matrix <- function(df) {
   df
 }
 
-reshape_recruitment_sources <- function(df) {
-  
-  recruit_source_vars <- list(
-    "recruit_1___0" = "TV",
-    "recruit_1___1" = "Radio",
-    "recruit_1___2" = "Metro Newspaper",
-    "recruit_1___3" = "Community Newspaper",
-    "recruit_1___4" = "Flyer",
-    "recruit_1___5" = "Facebook",
-    "recruit_1___6" = "Craigslist",
-    "recruit_1___7" = "Bus Advertisement",
-    "recruit_1___8" = "Participation in Other Studies",
-    "recruit_1___9" = "Clinical Trials Websites",
-    "recruit_1___10" = "Direct Mail",
-    "recruit_1___11" = "Other Person",
-    "recruit_1___12" = "Other",
-    "recruit_1___13" = "Instagram",
-    "recruit_1___14" = "Google",
-    "recruit_1___15" = "YouTube",
-    "recruit_1___16" = "Front Porch Forum",
-    "recruit_1___17" = "Spotify",
-    "recruit_1___18" = "TikTok",
-    "recruit_1___19" = "Reddit",
-    "recruit_1___20" = "BuildClinical"
-  )
-
+reshape_recruitment_sources <- function(df, recruit_source_vars) {
   # create single column of vectors
   df_sub <- df %>% 
     plyr::rename(recruit_source_vars) %>%
@@ -173,7 +202,6 @@ general_prescreen_cleaning <- function(df) {
   
   # create single column of vectors
   df_sub <- df_sub %>% 
-    # plyr::rename(exclusion_vars) %>%
     select(unlist(exclusion_vars, use.names = FALSE)) %>%
     rename_matrix() %>%
     tidyr::unite(
@@ -201,39 +229,7 @@ general_prescreen_cleaning <- function(df) {
 
 }
 
-reshape_exclusion_reasons <- function(df) {
-  
-  exclusion_vars <- list(
-    "sl_exclusion___1" = "did_not_consent",
-    "sl_exclusion___2" = "illiterate",
-    "sl_exclusion___3" = "not_pregnant",
-    "sl_exclusion___4" = "morethan_25wks",
-    "sl_exclusion___5" = "no_EGA_verification",
-    "sl_exclusion___6" = "over_44",
-    "sl_exclusion___7" = "under_21",
-    "sl_exclusion___8" = "ed_too_high",
-    "sl_exclusion___9" = "other_research",
-    "sl_exclusion___10" = "high_co",
-    "sl_exclusion___11" = "neg_cotinine",
-    "sl_exclusion___12" = "cessation_aids",
-    "sl_exclusion___13" = "cessation_txt",
-    "sl_exclusion___14" = "quit_plans",
-    "sl_exclusion___15" = "quit_past_month",
-    "sl_exclusion___16" = "other_tob_use",
-    "sl_exclusion___17" = "rolls_own",
-    "sl_exclusion___18" = "suicide_ideation",
-    "sl_exclusion___19" = "suicide_attempt",
-    "sl_exclusion___20" = "psychosis",
-    "sl_exclusion___21" = "nmania",
-    "sl_exclusion___22" = "failed_tox_screen",
-    "sl_exclusion___23" = "bp_out_of_range",
-    "sl_exclusion___24" = "hr_out_of_range",
-    "sl_exclusion___25" = "unstable_om_txt",
-    "sl_exclusion___26" = "opted_out",
-    "sl_exclusion___27" = "lmp_exclusion",
-    "sl_exclusion___28" = "covid19"
-  )
-  
+reshape_exclusion_reasons <- function(df, exclusion_vars) {
   # create single column of vectors
   df_sub <- df %>% 
     plyr::rename(exclusion_vars) %>%
@@ -330,6 +326,13 @@ general_cleaning <- function(df, sessions) {
   
 }
 
+impose_site <- function(df) {
+  # catchall to ensure all subject IDs have site indicators
+  df$site <- NA
+  df$site[substr(df$screen_id, 3, 3) == "A"] <- "uvm"
+  df$site[substr(df$screen_id, 3, 3) == "K"] <- "uky"
+  df
+}
 
 # main -------
 
@@ -353,13 +356,18 @@ tryCatch(
     # df_enrl <- rbind(df_enrl_proper, df_enrl_pilot)
     df_enrl <- df_enrl_pilot
     # clean
-    df_enrl <- reshape_exclusion_reasons(df_enrl)
+    df_enrl <- reshape_exclusion_reasons(df_enrl, exclusion_vars)
     df_enrl <- reshape_session_dates(df_enrl)
     df_enrl <- general_cleaning(df_enrl, sessions)
   },
   error = {
     load("./data/placeholder.RData")
     df_enrl <- df_placeholder
+  },
+  finally = {
+    # load pre-remote trial data
+    load("./data/ip.RData")
+    df_enrl <- rbind(df_enrl, tmp)
   }
 )
 
@@ -370,7 +378,7 @@ tryCatch(
     df_ps_uky <- pull_prescreen_info(rcon_ps_uky, sitename = "uky")
     
     df_ps <- rbind(df_ps_uvm, df_ps_uky)
-    df_ps <- reshape_recruitment_sources(df_ps)
+    df_ps <- reshape_recruitment_sources(df_ps, recruit_source_vars)
     df_ps <- general_prescreen_cleaning(df_ps)
   }
 )
@@ -378,14 +386,9 @@ tryCatch(
 # join
 df_enrl <- df_enrl %>% 
   select(-site) %>%
-  full_join(df_ps, by = c("screen_id" = "screen_subjectid"))
+  full_join(df_ps, by = c("screen_id" = "screen_subjectid")) %>%
+  impose_site()
 
-# write
+# # write
 save(df_enrl, file = "./data/enrollment.RData")
-
-
-# df_placeholder <- df_enrl %>%
-#   filter(screen_id == "x")
-# 
-# save(df_placeholder, file = "./data/placeholder.RData")
 
