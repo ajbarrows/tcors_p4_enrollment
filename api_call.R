@@ -14,8 +14,8 @@ for (i in 1:12) {
   sessions <- c(sessions, tmp)
 }
 sessions <- c(
-  "screening", "baseline_1", "baseline_2",
-  sessions, "abstinence", "gestational_week_2",
+  "prescreen", "screening", "baseline_1", 
+  "baseline_2","abstinence", "gestational_week_2",
   "30_day_followup", "birth_outcomes"
   )
 
@@ -214,7 +214,8 @@ general_prescreen_cleaning <- function(df) {
   df %>%
     rename(
       "ps_summary" = recruit_int_summ,
-      "ps_date" = recruit_date
+      "date" = recruit_date,
+      "screen_id" = screen_subjectid
       ) %>%
     select(-starts_with("recruit_")) %>%
     select(-redcap_event_name) %>%
@@ -223,9 +224,11 @@ general_prescreen_cleaning <- function(df) {
       ps_summary = redcapFactorFlip(ps_summary),
       screen_status = redcapFactorFlip(screen_status),
       ps_exclusion_reasons = ifelse(
-        ps_exclusion_reasons == "", NA, ps_exclusion_reasons)
+        ps_exclusion_reasons == "", NA, ps_exclusion_reasons),
+      date = as.Date(date)
       ) %>%
-    filter(!stringr::str_detect(redcap_id, test_ids))
+    filter(!stringr::str_detect(redcap_id, test_ids)) %>%
+    mutate(session = "prescreen")
 
 }
 
@@ -341,6 +344,7 @@ rcon_proper <- build_rcon("rc_proper_p4")
 rcon_pilot <- build_rcon("rc_pilot_p4")
 
 rcon_ps_uvm <- build_rcon("rc_recruitment_uvm_p4")
+rcon_s3_uvm <- build_rcon("rc_recruitment_uvm_s3")
 rcon_ps_uky <- build_rcon("rc_recruitment_uky_p4")
 
 # trial data
@@ -366,6 +370,7 @@ tryCatch(
   },
   finally = {
     # load pre-remote trial data
+    
     load("./data/ip.RData")
     df_enrl <- rbind(df_enrl, tmp)
   }
@@ -386,9 +391,21 @@ tryCatch(
 # join
 df_enrl <- df_enrl %>% 
   select(-site) %>%
-  full_join(df_ps, by = c("screen_id" = "screen_subjectid")) %>%
-  impose_site()
+  full_join(df_ps, by = c("screen_id", "session", "date")) %>%
+  group_by(screen_id) %>%
+  tidyr::fill(
+    sl_status, pi_prop, reasons_for_exclusion,
+    randomized, redcap_id, ps_summary, screen_status,
+    recruitment_sources, ps_exclusion_reasons, site,
+    .direction = "updown"
+  ) %>%
+  ungroup() %>%
+  arrange(screen_id, session)
 
 # # write
 save(df_enrl, file = "./data/enrollment.RData")
+
+
+#TODO Incorporate S3 prescreen, filter by pregnant
+#TODO 
 
